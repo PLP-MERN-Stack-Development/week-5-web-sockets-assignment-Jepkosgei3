@@ -1,78 +1,181 @@
-[![Open in Visual Studio Code](https://classroom.github.com/assets/open-in-vscode-2e0aaae1b6195c2367325f4f02e2d04e9abb55f0b24a779b69b11b9e10269abc.svg)](https://classroom.github.com/online_ide?assignment_repo_id=19873407&assignment_repo_type=AssignmentRepo)
-# Real-Time Chat Application with Socket.io
 
-This assignment focuses on building a real-time chat application using Socket.io, implementing bidirectional communication between clients and server.
+# Chat Application
 
-## Assignment Overview
+## 📝 Introduction
 
-You will build a chat application with the following features:
-1. Real-time messaging using Socket.io
-2. User authentication and presence
-3. Multiple chat rooms or private messaging
-4. Real-time notifications
-5. Advanced features like typing indicators and read receipts
+This chat application provides real-time messaging with **Socket.io**, persistent storage using **MongoDB**, and a **React-based frontend**. Designed for local development in VS Code, it supports room creation, user joining, and interactive chatting with emoji support.
 
-## Project Structure
+---
+
+## 🚀 Features
+
+- ⚡ Real-time messaging using Socket.io  
+- 🔐 Room creation and selection for private chats  
+- 👤 User authentication with username input  
+- 🗃️ Persistent message storage using MongoDB  
+- 😊 Emoji integration for expressive communication  
+- ✍️ Typing indicator to show active users  
+
+---
+
+## 🛠 Installation
+
+Follow these steps to set up the project locally in **VS Code**:
+
+### 1. Clone the repository
+
+```bash
+git clone https://github.com/PLP-MERN-Stack-Development/week-5-web-sockets-assignment-Jepkosgei3.git
+cd week-5-web-sockets-assignment-Jepkosgei3
+````
+
+### 2. Install server dependencies
+
+```bash
+cd server
+pnpm install
+```
+
+**Required packages:**
+
+* `express`
+* `http`
+* `cors`
+* `socket.io`
+* `mongoose`
+* `dotenv`
+
+### 3. Install client dependencies
+
+```bash
+cd ../client
+pnpm install
+```
+
+**Required packages:**
+
+* `react`
+* `react-dom`
+* `socket.io-client`
+* `axios`
+* `@emoji-mart/react`
+* `@emoji-mart/data`
+
+### 4. Set up environment variables
+
+**server/.env**
 
 ```
-socketio-chat/
-├── client/                 # React front-end
-│   ├── public/             # Static files
-│   ├── src/                # React source code
-│   │   ├── components/     # UI components
-│   │   ├── context/        # React context providers
-│   │   ├── hooks/          # Custom React hooks
-│   │   ├── pages/          # Page components
-│   │   ├── socket/         # Socket.io client setup
-│   │   └── App.jsx         # Main application component
-│   └── package.json        # Client dependencies
-├── server/                 # Node.js back-end
-│   ├── config/             # Configuration files
-│   ├── controllers/        # Socket event handlers
-│   ├── models/             # Data models
-│   ├── socket/             # Socket.io server setup
-│   ├── utils/              # Utility functions
-│   ├── server.js           # Main server file
-│   └── package.json        # Server dependencies
-└── README.md               # Project documentation
+MONGO_URI=mongodb://127.0.0.1:27017/chatapp
+PORT=4000
 ```
 
-## Getting Started
+**client/.env**
 
-1. Accept the GitHub Classroom assignment invitation
-2. Clone your personal repository that was created by GitHub Classroom
-3. Follow the setup instructions in the `Week5-Assignment.md` file
-4. Complete the tasks outlined in the assignment
+```
+VITE_SOCKET_URL=http://localhost:4000
+```
 
-## Files Included
+---
 
-- `Week5-Assignment.md`: Detailed assignment instructions
-- Starter code for both client and server:
-  - Basic project structure
-  - Socket.io configuration templates
-  - Sample components for the chat interface
+## ▶️ Running the App
 
-## Requirements
+### Start the server
 
-- Node.js (v18 or higher)
-- npm or yarn
-- Modern web browser
-- Basic understanding of React and Express
+```bash
+cd server
+pnpm run dev
+```
 
-## Submission
+### Start the client
 
-Your work will be automatically submitted when you push to your GitHub Classroom repository. Make sure to:
+```bash
+cd ../client
+pnpm run dev
+```
 
-1. Complete both the client and server portions of the application
-2. Implement the core chat functionality
-3. Add at least 3 advanced features
-4. Document your setup process and features in the README.md
-5. Include screenshots or GIFs of your working application
-6. Optional: Deploy your application and add the URLs to your README.md
+**Client runs at:** [http://localhost:5173](http://localhost:5173)
 
-## Resources
+---
 
-- [Socket.io Documentation](https://socket.io/docs/v4/)
-- [React Documentation](https://react.dev/)
-- [Express.js Documentation](https://expressjs.com/)
-- [Building a Chat Application with Socket.io](https://socket.io/get-started/chat) 
+## 💬 Usage
+
+* **Joining:** Enter a username and select or create a room to join.
+* **Creating a Room:** Input a new room name and click “Create” to start a chat.
+* **Chatting:** Send messages, use emojis, and view typing indicators.
+
+---
+
+## 📸 Screenshots
+
+### 🧍 Joining Screenshot
+
+![Joining Screenshot](./images/user1-join.png)
+
+![Joining Screenshot](./images/user2-join.png)
+
+### ➕ Creating a Room Screenshot
+
+![Creating Room Screenshot](./images/creating-room.png)
+
+### 💬 Chatting Screenshot
+
+![Chatting Screenshot](./images/user1-chat.png)
+
+![Chatting Screenshot](./images/user2.png)
+
+
+---
+
+## 🧩 Troubleshooting
+
+* **CORS Errors:** Ensure `VITE_SOCKET_URL` in `client/.env` is `http://localhost:4000`.
+* **Connection Issues:** Make sure MongoDB is running locally at `mongodb://127.0.0.1:27017`, and `MONGO_URI` is correct.
+* **Missing Packages:** Re-run `pnpm install` in both `server` and `client`.
+
+---
+
+## 🤝 Contributing
+
+Contributions are welcome! To contribute:
+
+1. Fork the repository.
+
+2. Create a new branch:
+
+   ```bash
+   git checkout -b feature-name
+   ```
+
+3. Commit your changes:
+
+   ```bash
+   git commit -m "Add feature"
+   ```
+
+4. Push to GitHub:
+
+   ```bash
+   git push origin feature-name
+   ```
+
+5. Open a pull request.
+
+---
+
+## 📄 License
+
+Distributed under the **MIT License**. See `LICENSE` for details.
+
+```
+
+### ✅ To use this:
+1. Place your screenshot images in the project’s root under `/images`.
+2. Name them:
+   - `joining.png`
+   - `creating-room.png`
+   - `chatting.png`
+3. Commit the `images` folder along with the README.
+
+Let me know if you’d like to add GIFs, embed video demos, or adjust image layout for GitHub Pages!
+```

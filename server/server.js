@@ -1,132 +1,155 @@
-// server.js - Main server file for Socket.io chat application
+import express from 'express';
+import http from 'http';
+import cors from 'cors';
+import { Server } from 'socket.io';
+import mongoose from 'mongoose';
+import dotenv from 'dotenv';
+import Message from './models/Message.js';
+import Room from './models/Room.js';
 
-const express = require('express');
-const http = require('http');
-const { Server } = require('socket.io');
-const cors = require('cors');
-const dotenv = require('dotenv');
-const path = require('path');
-
-// Load environment variables
 dotenv.config();
 
-// Initialize Express app
 const app = express();
 const server = http.createServer(app);
+
+// ✅ Allow specific origins
+const allowedOrigins = [
+  'https://congenial-goldfish-jp54xrqprpj35rrg-5173.app.github.dev',
+  'http://localhost:5173',
+];
+
+// ✅ Global CORS middleware with logging
+app.use((req, res, next) => {
+  const origin = req.headers.origin || 'no-origin';
+  console.log(`📥 Checking CORS for ${req.method} ${req.url} from ${origin}`);
+  console.log('📋 Request headers:', req.headers);
+  if (allowedOrigins.includes(origin)) {
+    res.header('Access-Control-Allow-Origin', origin);
+    res.header('Access-Control-Allow-Credentials', 'true');
+    res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, DELETE');
+    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    console.log(`📤 CORS headers set for ${origin}`);
+  } else {
+    console.log(`⚠️ Origin not allowed: ${origin}`);
+  }
+  next();
+});
+
+app.use(express.json());
+
+// ✅ Mongo
+mongoose.connect(process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/chatapp')
+  .then(() => console.log('✅ MongoDB connected'))
+  .catch(err => console.error('❌ MongoDB connection error:', err));
+
+// ✅ Debug incoming requests
+app.use((req, res, next) => {
+  console.log(`📥 ${req.method} ${req.url} from ${req.get('Origin') || 'no-origin'}`);
+  next();
+});
+
+// ✅ Route-specific CORS for /rooms
+app.options('/rooms', (req, res) => {
+  const origin = req.headers.origin || 'no-origin';
+  console.log(`📥 OPTIONS preflight for /rooms from ${origin}`);
+  console.log('📋 Preflight headers:', req.headers);
+  if (allowedOrigins.includes(origin)) {
+    res.header('Access-Control-Allow-Origin', origin);
+    res.header('Access-Control-Allow-Credentials', 'true');
+    res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, DELETE');
+    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    console.log(`📤 Preflight CORS headers set for ${origin}`);
+  } else {
+    console.log(`⚠️ Preflight origin not allowed: ${origin}`);
+  }
+  res.status(200).end();
+});
+
+app.get('/rooms', async (req, res) => {
+  try {
+    const rooms = await Room.find();
+    console.log('📤 Sending rooms:', rooms);
+    res.json(rooms);
+  } catch (err) {
+    console.error('❌ Error fetching rooms:', err);
+    res.status(500).json({ message: 'Error fetching rooms' });
+  }
+});
+
+app.post('/rooms', async (req, res) => {
+  try {
+    console.log('📥 Received POST /rooms with headers:', req.headers);
+    console.log('📥 Received POST /rooms body:', req.body);
+    const { name } = req.body;
+    if (!name) return res.status(400).json({ message: 'Room name is required' });
+
+    let room = await Room.findOne({ name });
+    if (room) return res.status(400).json({ message: 'Room already exists' });
+
+    room = new Room({ name });
+    await room.save();
+    console.log('📤 Room created:', room);
+    res.status(201).json(room);
+  } catch (err) {
+    console.error('❌ Error creating room:', err);
+    res.status(500).json({ message: 'Error creating room' });
+  }
+});
+
+app.delete('/rooms/:name', async (req, res) => {
+  try {
+    const { name } = req.params;
+    if (!name) return res.status(400).json({ message: 'Room name is required' });
+
+    const room = await Room.findOneAndDelete({ name });
+    if (!room) return res.status(404).json({ message: 'Room not found' });
+
+    await Message.deleteMany({ room: name });
+    console.log('📤 Room deleted:', name);
+    res.status(200).json({ message: 'Room deleted successfully' });
+  } catch (err) {
+    console.error('❌ Error deleting room:', err);
+    res.status(500).json({ message: 'Error deleting room' });
+  }
+});
+
+// ✅ Socket.io
 const io = new Server(server, {
   cors: {
-    origin: process.env.CLIENT_URL || 'http://localhost:5173',
-    methods: ['GET', 'POST'],
+    origin: allowedOrigins,
+    methods: ['GET', 'POST', 'DELETE'],
     credentials: true,
   },
 });
 
-// Middleware
-app.use(cors());
-app.use(express.json());
-app.use(express.static(path.join(__dirname, 'public')));
-
-// Store connected users and messages
-const users = {};
-const messages = [];
-const typingUsers = {};
-
-// Socket.io connection handler
 io.on('connection', (socket) => {
-  console.log(`User connected: ${socket.id}`);
+  console.log('🟢 User connected:', socket.id);
 
-  // Handle user joining
-  socket.on('user_join', (username) => {
-    users[socket.id] = { username, id: socket.id };
-    io.emit('user_list', Object.values(users));
-    io.emit('user_joined', { username, id: socket.id });
-    console.log(`${username} joined the chat`);
+  socket.on('joinRoom', async ({ room, username }) => {
+    socket.join(room);
+    const history = await Message.find({ room }).sort({ timestamp: -1 }).limit(50).lean();
+    socket.emit('chatHistory', history.reverse());
   });
 
-  // Handle chat messages
-  socket.on('send_message', (messageData) => {
-    const message = {
-      ...messageData,
-      id: Date.now(),
-      sender: users[socket.id]?.username || 'Anonymous',
-      senderId: socket.id,
-      timestamp: new Date().toISOString(),
-    };
-    
-    messages.push(message);
-    
-    // Limit stored messages to prevent memory issues
-    if (messages.length > 100) {
-      messages.shift();
-    }
-    
-    io.emit('receive_message', message);
-  });
-
-  // Handle typing indicator
-  socket.on('typing', (isTyping) => {
-    if (users[socket.id]) {
-      const username = users[socket.id].username;
-      
-      if (isTyping) {
-        typingUsers[socket.id] = username;
-      } else {
-        delete typingUsers[socket.id];
-      }
-      
-      io.emit('typing_users', Object.values(typingUsers));
-    }
-  });
-
-  // Handle private messages
-  socket.on('private_message', ({ to, message }) => {
-    const messageData = {
-      id: Date.now(),
-      sender: users[socket.id]?.username || 'Anonymous',
-      senderId: socket.id,
+  socket.on('chatMessage', async ({ message, room, username }) => {
+    const msg = new Message({ message, room, username });
+    await msg.save();
+    io.to(room).emit('newMessage', {
       message,
-      timestamp: new Date().toISOString(),
-      isPrivate: true,
-    };
-    
-    socket.to(to).emit('private_message', messageData);
-    socket.emit('private_message', messageData);
+      username,
+      room,
+      timestamp: msg.timestamp,
+    });
   });
 
-  // Handle disconnection
+  socket.on('typing', ({ room, username, isTyping }) => {
+    socket.to(room).emit('typingStatus', { username, isTyping });
+  });
+
   socket.on('disconnect', () => {
-    if (users[socket.id]) {
-      const { username } = users[socket.id];
-      io.emit('user_left', { username, id: socket.id });
-      console.log(`${username} left the chat`);
-    }
-    
-    delete users[socket.id];
-    delete typingUsers[socket.id];
-    
-    io.emit('user_list', Object.values(users));
-    io.emit('typing_users', Object.values(typingUsers));
+    console.log('🔴 User disconnected:', socket.id);
   });
 });
 
-// API routes
-app.get('/api/messages', (req, res) => {
-  res.json(messages);
-});
-
-app.get('/api/users', (req, res) => {
-  res.json(Object.values(users));
-});
-
-// Root route
-app.get('/', (req, res) => {
-  res.send('Socket.io Chat Server is running');
-});
-
-// Start server
-const PORT = process.env.PORT || 5000;
-server.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
-
-module.exports = { app, server, io }; 
+const PORT = process.env.PORT || 4000;
+server.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
