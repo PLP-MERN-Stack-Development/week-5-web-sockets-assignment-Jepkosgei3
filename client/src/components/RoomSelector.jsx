@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { useEffect, useState } from 'react';
 
-const API_BASE_URL = 'https://congenial-goldfish-jp54xrqprpj35rrg-4000.app.github.dev';
+const API_BASE_URL = 'http://localhost:4000';
 
 function RoomSelector({ onJoin }) {
   const [rooms, setRooms] = useState([]);
