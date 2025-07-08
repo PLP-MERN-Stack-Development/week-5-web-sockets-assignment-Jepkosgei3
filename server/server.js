@@ -14,7 +14,6 @@ const server = http.createServer(app);
 
 // ✅ Allow specific origins
 const allowedOrigins = [
-  'https://congenial-goldfish-jp54xrqprpj35rrg-5173.app.github.dev',
   'http://localhost:5173',
 ];
 
