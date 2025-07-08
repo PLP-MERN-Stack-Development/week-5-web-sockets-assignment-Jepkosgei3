@@ -107,22 +107,23 @@ pnpm run dev
 ---
 
 ## 📸 Screenshots
+### ➕ Creating a Room Screenshot
 
-### 🧍 Joining Screenshot
+![Creating Room Screenshot](./images/creating-room.png)
+
+### 🧍 Chat Room Joining Screenshots
 
 ![Joining Screenshot](./images/user1-join.png)
 
 ![Joining Screenshot](./images/user2-join.png)
 
-### ➕ Creating a Room Screenshot
 
-![Creating Room Screenshot](./images/creating-room.png)
 
-### 💬 Chatting Screenshot
+### 💬 Chatting Screenshots
 
 ![Chatting Screenshot](./images/user1-chat.png)
 
-![Chatting Screenshot](./images/user2.png)
+![Chatting Screenshot](./images/user2-chat.png)
 
 
 ---
@@ -163,19 +164,4 @@ Contributions are welcome! To contribute:
 
 ---
 
-## 📄 License
 
-Distributed under the **MIT License**. See `LICENSE` for details.
-
-```
-
-### ✅ To use this:
-1. Place your screenshot images in the project’s root under `/images`.
-2. Name them:
-   - `joining.png`
-   - `creating-room.png`
-   - `chatting.png`
-3. Commit the `images` folder along with the README.
-
-Let me know if you’d like to add GIFs, embed video demos, or adjust image layout for GitHub Pages!
-```
